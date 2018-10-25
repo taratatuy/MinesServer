@@ -16,7 +16,6 @@ mouse = {
 
 addEventListener('mouseup', e => {
   var grid = objects[0];
-  console.log(e.button);
   if (e.button == 0) {
     for (var i = 0; i < grid.cols; i++) {
       for (var j = 0; j < grid.rows; j++) {
@@ -28,10 +27,10 @@ addEventListener('mouseup', e => {
           grid.grid[i][j].mouseOn == true
         ) {
           if (!objects[0].grid[i][j].flag) {
-            if (!objects[0].grid[i][j].checked) {
-              objects[0].grid[i][j].showBombs();
-            }
-            objects[0].grid[i][j].checked = true;
+            // if (!objects[0].grid[i][j].checked) {
+            objects[0].grid[i][j].showBombs();
+            // objects[0].grid[i][j].checked = true;
+            // }
           }
         }
       }
@@ -75,7 +74,7 @@ class Grid {
     this.cols = cols;
     this.rows = rows;
     this.grid = new Array(this.cols);
-    this.bombs = 30;
+    this.bombs = 250;
 
     this.padding = 10;
     this.cageSize = 30;
@@ -104,7 +103,7 @@ class Grid {
             ];
           }
           this.grid[i][j].nbh[this.grid[i][j].nbh.length] = this.grid[i - 1][j];
-          if (j < this.cols - 1) {
+          if (j < this.rows - 1) {
             this.grid[i][j].nbh[this.grid[i][j].nbh.length] = this.grid[i - 1][
               j + 1
             ];
@@ -114,7 +113,7 @@ class Grid {
         if (j > 0) {
           this.grid[i][j].nbh[this.grid[i][j].nbh.length] = this.grid[i][j - 1];
         }
-        if (j < this.cols - 1) {
+        if (j < this.rows - 1) {
           this.grid[i][j].nbh[this.grid[i][j].nbh.length] = this.grid[i][j + 1];
         }
 
@@ -125,7 +124,7 @@ class Grid {
             ];
           }
           this.grid[i][j].nbh[this.grid[i][j].nbh.length] = this.grid[i + 1][j];
-          if (j < this.cols - 1) {
+          if (j < this.rows - 1) {
             this.grid[i][j].nbh[this.grid[i][j].nbh.length] = this.grid[i + 1][
               j + 1
             ];
@@ -189,35 +188,59 @@ class Cage {
     this.cageSize = cageSize;
     this.nbh = [];
     this.bomb = false;
-    // if (this.bomd == false) {
-    this.bombsAround = 0;
-    // }
-    this.checked = false;
     this.flag = false;
+    this.bombsAround = 0;
+    this.flagsAround = 0;
+    this.checked = false;
     this.mouseOn = false;
   }
 
   showBombs() {
     if (!this.bomb) {
-      for (var i = 0; i < this.nbh.length; i++) {
-        if (this.nbh[i].bomb == true) {
-          this.bombsAround++;
+      if (this.checked) {
+        this.flagsAround = this.getFlagsAround();
+
+        if (this.flagsAround == this.bombsAround) {
+          this.zeroRecursionOpen();
         }
       }
-      this.checked = true;
 
-      if (this.bombsAround == 0) {
-        this.zeroRecursionOpen();
+      if (!this.checked) {
+        this.bombsAround = this.getBombsAround();
+        this.checked = true;
+
+        if (this.bombsAround == 0) {
+          this.zeroRecursionOpen();
+        }
       }
     } else {
-      console.log('BOMB');
       objects[0].openAll();
     }
   }
 
+  getBombsAround() {
+    let bombsCount = 0;
+    for (var i = 0; i < this.nbh.length; i++) {
+      if (this.nbh[i].bomb == true) {
+        bombsCount++;
+      }
+    }
+    return bombsCount;
+  }
+
+  getFlagsAround() {
+    let flagCount = 0;
+    for (var i = 0; i < this.nbh.length; i++) {
+      if (this.nbh[i].flag == true) {
+        flagCount++;
+      }
+    }
+    return flagCount;
+  }
+
   zeroRecursionOpen() {
     for (var i = 0; i < this.nbh.length; i++) {
-      if (!this.nbh[i].checked) {
+      if (!this.nbh[i].checked && !this.nbh[i].flag) {
         this.nbh[i].showBombs();
       }
     }
@@ -230,9 +253,11 @@ class Cage {
   draw() {
     c.save();
     c.beginPath();
+    c.fillStyle = 'lightgray';
+    c.fillRect(this.x, this.y, this.cageSize, this.cageSize);
     if (this.mouseOn) {
       if (!this.checked) {
-        c.fillStyle = 'lightblue';
+        c.fillStyle = 'white';
         c.fillRect(this.x, this.y, this.cageSize, this.cageSize);
       }
     }
@@ -255,15 +280,19 @@ class Cage {
     if (this.checked) {
       if (!this.bomb) {
         c.font = '20px Arial';
-        if (this.bombsAround == 0) {
-          c.fillStyle = 'lightgray';
-          c.fillRect(this.x, this.y, this.cageSize, this.cageSize);
-          c.strokeRect(this.x, this.y, this.cageSize, this.cageSize);
-        }
+        // if (this.bombsAround == 0) {
+        c.fillStyle = 'white';
+        c.fillRect(this.x, this.y, this.cageSize, this.cageSize);
+        c.strokeRect(this.x, this.y, this.cageSize, this.cageSize);
+        // }
         if (this.bombsAround == 1) c.fillStyle = 'black';
         if (this.bombsAround == 2) c.fillStyle = 'black';
         if (this.bombsAround == 3) c.fillStyle = 'black';
-        if (this.bombsAround == 1) c.fillStyle = 'black';
+        if (this.bombsAround == 4) c.fillStyle = 'black';
+        if (this.bombsAround == 5) c.fillStyle = 'black';
+        if (this.bombsAround == 6) c.fillStyle = 'black';
+        if (this.bombsAround == 7) c.fillStyle = 'black';
+        if (this.bombsAround == 8) c.fillStyle = 'black';
         c.fillText(
           this.bombsAround,
           this.x + this.cageSize / 2 - 5,
@@ -286,7 +315,7 @@ class Cage {
 
 var objects = [];
 function init() {
-  objects.push(new Grid(10, 10));
+  objects.push(new Grid(50, 20));
 }
 
 function animate() {
