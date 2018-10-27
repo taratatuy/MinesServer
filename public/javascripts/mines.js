@@ -14,6 +14,14 @@ mouse = {
   y: 0
 };
 
+addEventListener('keypress', e => {
+  var { key } = e;
+  if (key.toLowerCase() == 'r') {
+    location.reload();
+    console.log('qwe');
+  }
+});
+
 addEventListener('mouseup', e => {
   var grid = objects[0];
   if (e.button == 0) {
@@ -320,7 +328,9 @@ function init() {
 
 function animate() {
   requestAnimationFrame(animate);
-  c.clearRect(0, 0, canvas.width, canvas.height);
+  c.fillStyle = 'rgba(255, 255, 255, 0.05)';
+  c.fillRect(0, 0, canvas.width, canvas.height);
+  // c.clearRect(0, 0, canvas.width, canvas.height);
 
   objects.forEach(object => {
     object.update();
